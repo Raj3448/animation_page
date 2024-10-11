@@ -13,14 +13,18 @@ class ProductComponent extends StatelessWidget {
       decoration: BoxDecoration(
           color: whiteColor, borderRadius: BorderRadius.circular(10)),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Image.network(
-            productList[index].imageUrl,
-            width: 130,
-            height: 150,
+          Hero(
+            tag: productList[index].id,
+            child: Image.network(
+              productList[index].imageUrl,
+              width: 130,
+              height: 150,
+            ),
           ),
           Container(
-            padding: const EdgeInsets.only(left: 10, right: 10),
+            padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
             alignment: Alignment.topLeft,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +38,7 @@ class ProductComponent extends StatelessWidget {
                       overflow: TextOverflow.ellipsis),
                 ),
                 Text(
-                  '\$${productList[index].price.toStringAsFixed(2)}',
+                  '\$ ${productList[index].price.toInt().toString()}',
                   style: AppFonts.mediumText.copyWith(color: grey),
                 ),
               ],
