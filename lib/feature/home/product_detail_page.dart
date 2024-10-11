@@ -14,9 +14,12 @@ class ProductDetailPage extends StatefulWidget {
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+
+  late AnimationController _bottomController;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -28,12 +31,21 @@ class _ProductDetailPageState extends State<ProductDetailPage>
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
-    _controller.repeat(reverse: true); // Continuously run the animation
+    _controller.repeat(reverse: true);
+    _bottomController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(CurvedAnimation(
+            parent: _bottomController, curve: Curves.easeInOut));
+    _bottomController.forward();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _bottomController.dispose();
     super.dispose();
   }
 
@@ -71,94 +83,114 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                 ],
               ),
             ),
-            Center(
-              child: Hero(
-                tag: widget.productModel.id,
-                child: AnimatedBuilder(
-                  animation: _scaleAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: Image.network(
-                        widget.productModel.imageUrl,
-                        width: 430,
-                        height: 250,
-                      ),
-                    );
-                  },
+            Expanded(
+              child: Center(
+                child: Hero(
+                  tag: widget.productModel.id,
+                  child: AnimatedBuilder(
+                    animation: _scaleAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _scaleAnimation.value,
+                        child: Image.network(
+                          widget.productModel.imageUrl,
+                          width: 430,
+                          height: 250,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 30.0, left: 10, right: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: grey,
-                    ),
-                    child: Text(
-                      'Limited Edition',
-                      style: AppFonts.mediumText.copyWith(color: whiteColor),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        height: 30,
-                        width: 30,
-                        decoration: const BoxDecoration(
-                            color: Colors.amber, shape: BoxShape.circle),
-                      ),
-                      sizedBoxWidth10,
-                      Container(
-                        height: 30,
-                        width: 30,
-                        decoration: const BoxDecoration(
-                            color: Colors.deepOrangeAccent,
-                            shape: BoxShape.circle),
-                      ),
-                      sizedBoxWidth10,
-                      Container(
-                        decoration: const BoxDecoration(
-                            color: Colors.cyan, shape: BoxShape.circle),
-                        child: Container(
-                          margin: const EdgeInsets.all(2),
-                          decoration: const BoxDecoration(
-                              color: Colors.white, shape: BoxShape.circle),
-                          child: Container(
-                            margin: const EdgeInsets.all(2),
-                            height: 30,
-                            width: 30,
+            Expanded(
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(top: 30.0, left: 10, right: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
                             decoration: const BoxDecoration(
-                                color: Colors.cyan, shape: BoxShape.circle),
+                              color: grey,
+                            ),
+                            child: Text(
+                              'Limited Edition',
+                              style: AppFonts.mediumText
+                                  .copyWith(color: whiteColor),
+                            ),
                           ),
-                        ),
+                          Row(
+                            children: [
+                              Container(
+                                height: 30,
+                                width: 30,
+                                decoration: const BoxDecoration(
+                                    color: Colors.amber,
+                                    shape: BoxShape.circle),
+                              ),
+                              sizedBoxWidth10,
+                              Container(
+                                height: 30,
+                                width: 30,
+                                decoration: const BoxDecoration(
+                                    color: Colors.deepOrangeAccent,
+                                    shape: BoxShape.circle),
+                              ),
+                              sizedBoxWidth10,
+                              Container(
+                                decoration: const BoxDecoration(
+                                    color: Colors.cyan, shape: BoxShape.circle),
+                                child: Container(
+                                  margin: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle),
+                                  child: Container(
+                                    margin: const EdgeInsets.all(2),
+                                    height: 30,
+                                    width: 30,
+                                    decoration: const BoxDecoration(
+                                        color: Colors.cyan,
+                                        shape: BoxShape.circle),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
                       ),
-                    ],
-                  )
-                ],
+                    ),
+                    Text(
+                      widget.productModel.title,
+                      style: AppFonts.extraLargeText.copyWith(color: black),
+                    ),
+                    ElevatedButton.icon(
+                      style: const ButtonStyle(
+                          backgroundColor:
+                              WidgetStatePropertyAll(backGroundColor)),
+                      onPressed: () {},
+                      label: Text(
+                          '\$ ${widget.productModel.price.toInt().toString()}',
+                          style: AppFonts.largeText.copyWith(color: black)),
+                      icon: const Icon(
+                        Icons.add_shopping_cart_rounded,
+                        size: 22,
+                        color: black,
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
-            Text(
-              widget.productModel.title,
-              style: AppFonts.extraLargeText.copyWith(color: black),
-            ),
-            ElevatedButton.icon(
-              style: const ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(backGroundColor)),
-              onPressed: () {},
-              label: Text('\$ ${widget.productModel.price.toInt().toString()}',
-                  style: AppFonts.largeText.copyWith(color: black)),
-              icon: const Icon(
-                Icons.add_shopping_cart_rounded,
-                size: 22,
-                color: black,
-              ),
-            )
           ],
         ),
       ),
